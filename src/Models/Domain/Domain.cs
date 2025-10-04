@@ -2,6 +2,9 @@
 {
     internal record Domain
     {
+        private const int totalValueMultiplier = 100;
+        private const int unevenWeightPenaltyMultiplier = 10;
+
         private readonly IReadOnlyCollection<Backpack> _backpackPool = [];
         public Dictionary<Item, Person?> Items { get; private set; } = [];
         public Dictionary<Person, HashSet<Item>> People { get; private set; } = [];
@@ -72,8 +75,15 @@
             return snapshot.IsValueCreated ? snapshot.Value : this;
         }
 
-        public int TotalValue => People.Values.SelectMany(x => x).Sum(i => i.Value);
-        public int PersonValue(Person person) => People[person].Sum(p => p.Value);
+        public double TotalScore()
+        {
+            var totalValue = People.Values.SelectMany(x => x).Sum(i => i.Value) * totalValueMultiplier;
+            var totalWeightPenalty = People.GroupBy(p => p.Key.Backpack.Id)
+                .Select(g => g.Sum(kv => (kv.Key.Backpack.MaxWeight - kv.Value.Sum(x => x.Weight))))
+                .Sum(x => x * unevenWeightPenaltyMultiplier);
+
+            return totalValue - totalWeightPenalty;
+        }
 
         private Domain GetSnapshot()
         {
