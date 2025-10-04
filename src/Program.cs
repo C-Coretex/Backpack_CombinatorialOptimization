@@ -1,20 +1,33 @@
 ﻿using Backpack_CombinatorialOptimization.Models.Domain;
+using Backpack_CombinatorialOptimization.Optimizer;
+using System.Diagnostics;
 
+#region Configs
+var backpackPool = new List<Backpack>
+{
+    new Backpack(1, maxWeight: 20, maxVolume: 30),
+    new Backpack(2, maxWeight: 50, maxVolume: 70),
+    new Backpack(3, maxWeight: 80, maxVolume: 90),
+};
+
+var countOfPeople = 1;
+var itemCount = 100;
+
+var maxIterations = 10_000;
+
+#endregion
 
 Console.WriteLine("Hello, World!");
 
-var backpackPool = new List<Backpack>
-{
-	new Backpack(1, maxWeight: 20, maxVolume: 30),
-	new Backpack(2, maxWeight: 50, maxVolume: 70),
-    new Backpack(3, maxWeight: 80, maxVolume: 90),
-};
+
 Console.WriteLine("Pool of backpacks:");
 Console.WriteLine(string.Join(Environment.NewLine, backpackPool));
 
 Console.WriteLine("--------------------------------------");
+
 var domain = new Domain(backpackPool);
-domain.Init(peopleCount: 1, itemCount: 100);
+domain.Init(countOfPeople, itemCount);
+
 Console.WriteLine("Domain:");
 Console.WriteLine("People (backpack id):");
 Console.WriteLine(string.Join(", ", domain.People.Select(x => x.Key.Backpack.Id).Order()));
@@ -23,7 +36,30 @@ Console.WriteLine("Items (top 20 by value):");
 Console.WriteLine(string.Join(Environment.NewLine, domain.Items.OrderByDescending(x => x.Value).Take(20)
     .Select(x => $"Weight: {Math.Round(x.Key.Weight, 2)}; Volume: {Math.Round(x.Key.Volume, 2)}; Value: {x.Value}")));
 
+var optimizer = new Optimizer(domain);
+var sw = new Stopwatch();
 
+Console.WriteLine("Calculating solution...");
+sw.Start();
+var solution = optimizer.CalculateSolution(maxIterations: maxIterations, out var iterations);
+sw.Stop();
+Console.WriteLine($"Solution calculated in {sw.ElapsedMilliseconds} ms, iterations made: {iterations}, total score: {solution.TotalScore()}");
+
+Console.WriteLine("Solution:");
+foreach (var person in solution.People)
+{
+	var items = solution.People[person.Key];
+
+	var totalWeight = items.Sum(i => i.Weight);
+	var totalVolume = items.Sum(i => i.Volume);
+	var totalValue = items.Sum(i => i.Value);
+
+	Console.WriteLine($"Person with backpack id {person.Key.Backpack.Id}: items count: {items.Count}, total weight: {Math.Round(totalWeight, 2)}, total volume: {Math.Round(totalVolume, 2)}, total value: {totalValue}");
+	foreach (var item in items.OrderByDescending(i => i.Value))
+	{
+		Console.WriteLine($"\tWeight: {Math.Round(item.Weight, 2)}; Volume: {Math.Round(item.Volume, 2)}; Value: {item.Value}");
+	}
+}
 
 Console.ReadKey();
 /*

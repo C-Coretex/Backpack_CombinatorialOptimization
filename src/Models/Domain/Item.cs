@@ -4,11 +4,12 @@ namespace Backpack_CombinatorialOptimization.Models.Domain
 {
     internal readonly record struct Item
     {
+        public int Id { get; init; }
         public double Weight { get; init; }
         public double Volume { get; init; }
         public int Value { get; init; }
 
-        public Item(double weight, double volume, int value)
+        public Item(int id, double weight, double volume, int value)
         {
             Weight = weight;
             Volume = volume;
@@ -21,7 +22,7 @@ namespace Backpack_CombinatorialOptimization.Models.Domain
             var volume = random.NextDouble(0.3, 10);
 
             var parameter = (int)(Math.Ceiling(weight + volume / 2));
-            return new(weight, volume, value: random.Next(parameter, 30 + parameter));
+            return new(random.Next(), weight, volume, value: random.Next(parameter, 30 + parameter));
         }
     }
 }

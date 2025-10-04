@@ -16,7 +16,8 @@
         public void Init(int peopleCount, int itemCount)
         {
             People = Enumerable.Range(0, peopleCount)
-                .ToDictionary(_ => new Person(_backpackPool.ElementAt(Random.Shared.Next(0, _backpackPool.Count))), _ => new HashSet<Item>());
+                .ToDictionary(_ => new Person(Random.Shared.Next(), _backpackPool.ElementAt(Random.Shared.Next(0, _backpackPool.Count))), 
+                _ => new HashSet<Item>());
             Items = Enumerable.Range(0, itemCount)
                 .ToDictionary(_ => Item.CreateRandom(Random.Shared), _ => (Person?)null);
         }
@@ -79,10 +80,29 @@
         {
             var totalValue = People.Values.SelectMany(x => x).Sum(i => i.Value) * totalValueMultiplier;
             var totalWeightPenalty = People.GroupBy(p => p.Key.Backpack.Id)
-                .Select(g => g.Sum(kv => (kv.Key.Backpack.MaxWeight - kv.Value.Sum(x => x.Weight))))
-                .Sum(x => x * unevenWeightPenaltyMultiplier);
+                .Select(g => g.Select(kv => (kv.Key.Backpack.MaxWeight - kv.Value.Sum(x => x.Weight))))
+                .Sum(x => CalculateAverageDifference(x.ToList()) * unevenWeightPenaltyMultiplier);
 
             return totalValue - totalWeightPenalty;
+        }
+
+        private static double CalculateAverageDifference(List<double> values)
+        {
+            if (values.Count < 2)
+                return 0;
+
+            var totalDifference = 0.0;
+            var totalPairs = 0;
+            for (var i = 0; i < values.Count; i++)
+            {
+                for (var j = i + 1; j < values.Count; j++)
+                {
+                    totalDifference += Math.Abs(values[i] - values[j]);
+                    totalPairs++;
+                }
+            }
+
+            return totalDifference / totalPairs;
         }
 
         private Domain GetSnapshot()

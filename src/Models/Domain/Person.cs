@@ -2,10 +2,12 @@
 {
     internal record Person
     {
+        public int Id { get; init; }
         public Backpack Backpack { get; init; }
 
-        public Person(Backpack backpack)
+        public Person(int id, Backpack backpack)
         {
+            Id = id;
             Backpack = backpack;
         }
     }
