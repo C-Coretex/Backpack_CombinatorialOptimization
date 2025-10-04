@@ -10,10 +10,10 @@ var backpackPool = new List<Backpack>
     new Backpack(3, maxWeight: 80, maxVolume: 120),
 };
 
-var countOfPeople = 10;
-var itemCount = 1000;
+var countOfPeople = 5;
+var itemCount = 100;
 
-var maxIterations = 10_000;
+var maxIterations = 5_000;
 
 #endregion
 

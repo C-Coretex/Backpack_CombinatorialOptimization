@@ -1,4 +1,5 @@
-﻿using Backpack_CombinatorialOptimization.Models.Domain;
+﻿using Backpack_CombinatorialOptimization.Helpers;
+using Backpack_CombinatorialOptimization.Models.Domain;
 
 namespace Backpack_CombinatorialOptimization.Optimizer
 {
@@ -12,7 +13,7 @@ namespace Backpack_CombinatorialOptimization.Optimizer
 
         public Domain CalculateSolution(int maxIterations, out int iterationsMade)
         {
-           var bestDomain = BuildInitial();
+            var bestDomain = BuildSolution();
 
             //TODO: add not only max iterations, but also min delta...
             //TODO: add parallelization...
@@ -20,33 +21,55 @@ namespace Backpack_CombinatorialOptimization.Optimizer
             for (var i = 0; i < maxIterations; i++)
             {
                 iterationsMade = i + 1;
-                //do advance
-                //var canAdvance = domain.CanAdvance();
-                //var domainTemp = domain.AssignItem()
-                //var score = domainTemp.TotalScore();
+
+                var domain = Advance(bestDomain);
+                if(domain.TotalScore() > bestDomain.TotalScore())
+                    bestDomain = domain;
+
+                if ((i + 1) % 100 == 0)
+                    Console.WriteLine($"Iteration {i + 1}, best score: {bestDomain.TotalScore()}");
             }
 
             return bestDomain;
         }
 
         //First Fit algorithm
-        public Domain BuildInitial()
+        private Domain BuildSolution(Domain? domain = null)
         {
-            var domain = _originalDomain.GetSnapshot();
+            domain = domain?.GetSnapshot() ?? _originalDomain.GetSnapshot();
 
-            while(true)
+            while (true)
             {
                 var unassignedItems = domain.Items.Where(i => i.Value is null).Select(kv => kv.Key).OrderByDescending(i => i.Value)
                     .Select(i => (canAssign: domain.CanAssignItem(i, out var p), item: i, person: p))
                     .Where(x => x.canAssign)
-                    .OrderByDescending(x => domain.AssignItem(x.item, x.person).TotalScore()) //TODO: this might be slow...
+                    .OrderByDescending(x => domain.AssignItem(x.item, x.person).TotalScore() * Random.Shared.NextDouble(0.85, 1)) //TODO: this might be slow...
                     .FirstOrDefault();
-                
-                if(unassignedItems.person is null)
+
+                if (unassignedItems.person is null)
                     break;
 
                 domain = domain.AssignItem(unassignedItems.item, unassignedItems.person);
             }
+
+            return domain;
+        }
+
+        private Domain Advance(Domain domain, int itemCountToRemove = 10)
+        {
+            var items = domain.Items.Where(i => i.Value is not null).Select(kv => kv.Key).ToList();
+            List<Item> itemsToRemove = [];
+            for (var i = 0; i < itemCountToRemove && items.Count > 0; i++)
+            {
+                //random removal
+                var removeIndex = Random.Shared.Next(items.Count);
+
+                itemsToRemove.Add(items[removeIndex]);
+                items.RemoveAt(removeIndex);
+            }
+
+            domain = domain.AssignItems(itemsToRemove.Select(i => (i, (Person?)null)));
+            domain = BuildSolution(domain);
 
             return domain;
         }
