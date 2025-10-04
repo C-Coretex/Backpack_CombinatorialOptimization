@@ -1,21 +1,31 @@
 ﻿using Backpack_CombinatorialOptimization.Models.Domain;
 
 
+Console.WriteLine("Hello, World!");
+
 var backpackPool = new List<Backpack>
 {
-	new Backpack(maxWeight: 20, maxVolume: 30),
-	new Backpack(maxWeight: 50, maxVolume: 70),
-    new Backpack(maxWeight: 80, maxVolume: 90),
+	new Backpack(1, maxWeight: 20, maxVolume: 30),
+	new Backpack(2, maxWeight: 50, maxVolume: 70),
+    new Backpack(3, maxWeight: 80, maxVolume: 90),
 };
+Console.WriteLine("Pool of backpacks:");
+Console.WriteLine(string.Join(Environment.NewLine, backpackPool));
 
+Console.WriteLine("--------------------------------------");
 var domain = new Domain(backpackPool);
 domain.Init(peopleCount: 1, itemCount: 100);
+Console.WriteLine("Domain:");
+Console.WriteLine("People (backpack id):");
+Console.WriteLine(string.Join(", ", domain.People.Select(x => x.Backpack.Id).Order()));
+Console.WriteLine();
+Console.WriteLine("Items (top 20 by value):");
+Console.WriteLine(string.Join(Environment.NewLine, domain.Items.OrderByDescending(x => x.Value).Take(20)
+    .Select(x => $"Weight: {Math.Round(x.Weight, 2)}; Volume: {Math.Round(x.Volume, 2)}; Value: {x.Value}")));
 
 
 
-
-
-
+Console.ReadKey();
 /*
 Domain:
 	All available items (weight, size, value)

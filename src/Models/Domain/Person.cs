@@ -2,7 +2,7 @@
 {
     internal record Person
     {
-        Backpack Backpack { get; init; }
+        public Backpack Backpack { get; init; }
         public List<Item> Items { get; init; } = [];
 
         public Person(Backpack backpack)
