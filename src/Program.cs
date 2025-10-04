@@ -17,11 +17,11 @@ var domain = new Domain(backpackPool);
 domain.Init(peopleCount: 1, itemCount: 100);
 Console.WriteLine("Domain:");
 Console.WriteLine("People (backpack id):");
-Console.WriteLine(string.Join(", ", domain.People.Select(x => x.Backpack.Id).Order()));
+Console.WriteLine(string.Join(", ", domain.People.Select(x => x.Key.Backpack.Id).Order()));
 Console.WriteLine();
 Console.WriteLine("Items (top 20 by value):");
 Console.WriteLine(string.Join(Environment.NewLine, domain.Items.OrderByDescending(x => x.Value).Take(20)
-    .Select(x => $"Weight: {Math.Round(x.Weight, 2)}; Volume: {Math.Round(x.Volume, 2)}; Value: {x.Value}")));
+    .Select(x => $"Weight: {Math.Round(x.Key.Weight, 2)}; Volume: {Math.Round(x.Key.Volume, 2)}; Value: {x.Value}")));
 
 
 
@@ -31,7 +31,9 @@ Domain:
 	All available items (weight, size, value)
 	Limitation:
 		A backpack has max weight and max size. We have several people with the backpacks (there are several backpack types, e.g. for children, adults).
-		We want to take as much value as we can, but we should account max optimal weight. If max optimal weight is the same, ideally we would prefer to have similar weight on two backpacks.
+		We want to take as much value as we can. 
+		Hard Constraint: we cannot exceed max weight and max size of a backpack.
+		Soft Constraint: If max optimal weight is the same, ideally we would prefer to have similar weight on two backpacks.
 		
 
 Scoring:

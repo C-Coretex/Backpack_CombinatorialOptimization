@@ -3,7 +3,6 @@
     internal record Person
     {
         public Backpack Backpack { get; init; }
-        public List<Item> Items { get; init; } = [];
 
         public Person(Backpack backpack)
         {
