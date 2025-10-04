@@ -11,23 +11,68 @@ namespace Backpack_CombinatorialOptimization.Optimizer
             _originalDomain = domain.GetSnapshot();
         }
 
-        public Domain CalculateSolution(int maxIterations, out int iterationsMade)
+        public Domain CalculateSolution(int iterations)
         {
             var bestDomain = BuildSolution();
 
-            //TODO: add not only max iterations, but also min delta...
-            //TODO: add parallelization...
-            iterationsMade = 0;
-            for (var i = 0; i < maxIterations; i++)
+            for (var i = 0; i < iterations; i++)
             {
-                iterationsMade = i + 1;
-
                 var domain = Advance(bestDomain);
-                if(domain.TotalScore() > bestDomain.TotalScore())
+                if (domain.TotalScore() > bestDomain.TotalScore())
                     bestDomain = domain;
 
                 if ((i + 1) % 100 == 0)
                     Console.WriteLine($"Iteration {i + 1}, best score: {bestDomain.TotalScore()}");
+            }
+
+            return bestDomain;
+        }
+
+        //Simulated Annealing - change trashold + change multiplication randomness in BuildSolution
+        //I've chosen Simululated Annealing, because I also want to implement parallelization and it's easier to implement, since this algorithm doesn't require memory
+        //Don't see reason to use Tabu Search here, since we remove random items, we add best-fit items with some randomness and we have many items to choose from.
+        public Domain CalculateSolution(IEnumerable<double> temperatures)
+        {
+            var bestDomain = BuildSolution();
+            var currentDomain = bestDomain;
+            //TODO: add not only max iterations, but also min delta...
+            //TODO: add parallelization...
+            var iteration = 0;
+
+            //CalculateSolution starting temperature
+            /*
+            var costDiff = 0.0;
+            for (var i = 0; i < 100; i++)
+            {
+                bestDomain = Advance(currentDomain);
+                costDiff += Math.Abs(currentDomain.TotalScore() - bestDomain.TotalScore());
+                currentDomain = bestDomain;
+            }
+            costDiff /= 100;
+            var t = -costDiff / Math.Log(0.8); //80% chance to accept worse solution at start
+            */
+            foreach (var temperature in temperatures)
+            {
+                iteration++;
+
+                var domain = Advance(currentDomain);
+                var domainTotalScore = domain.TotalScore();
+                if (domainTotalScore > bestDomain.TotalScore())
+                    bestDomain = domain;
+
+
+                var currentDomainTotalScore = currentDomain.TotalScore();
+
+                /*Console.WriteLine("-------");
+                Console.WriteLine(Random.Shared.NextDouble());
+                Console.WriteLine(Math.Pow(Math.E, (currentDomainTotalScore - domainTotalScore) / temperature));
+                */
+                if (domainTotalScore > currentDomainTotalScore 
+                    || Random.Shared.NextDouble() < Math.Exp((domainTotalScore - currentDomainTotalScore) / temperature))
+                    currentDomain = domain;
+
+                if (iteration % 100 == 0)
+                    Console.WriteLine($"Iteration {iteration}, best score: {bestDomain.TotalScore()}");
             }
 
             return bestDomain;
@@ -43,7 +88,7 @@ namespace Backpack_CombinatorialOptimization.Optimizer
                 var unassignedItems = domain.Items.Where(i => i.Value is null).Select(kv => kv.Key).OrderByDescending(i => i.Value)
                     .Select(i => (canAssign: domain.CanAssignItem(i, out var p), item: i, person: p))
                     .Where(x => x.canAssign)
-                    .OrderByDescending(x => domain.AssignItem(x.item, x.person).TotalScore() * Random.Shared.NextDouble(0.85, 1)) //TODO: this might be slow...
+                    .OrderByDescending(x => domain.AssignItem(x.item, x.person).TotalScore() * Random.Shared.NextDouble(0.8, 1)) //TODO: this might be slow...
                     .FirstOrDefault();
 
                 if (unassignedItems.person is null)

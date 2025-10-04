@@ -11,9 +11,16 @@ var backpackPool = new List<Backpack>
 };
 
 var countOfPeople = 5;
-var itemCount = 100;
+var itemCount = 150;
 
-var maxIterations = 5_000;
+List<double> temperatures = [];
+var value = 1200.0;
+while (value >= 0.01)
+{
+	temperatures.AddRange(Enumerable.Repeat(value, 5));
+    value *= 0.99;
+}
+
 
 #endregion
 
@@ -41,9 +48,23 @@ var sw = new Stopwatch();
 
 Console.WriteLine("Calculating solution...");
 sw.Start();
-var solution = optimizer.CalculateSolution(maxIterations: maxIterations, out var iterations);
+var t1 = Task.Run(() =>
+{
+    var solution = optimizer.CalculateSolution(temperatures);
+    Console.WriteLine($"Solution SA calculated in {sw.ElapsedMilliseconds} ms, iterations made: {temperatures.Count}, total score: {solution.TotalScore()}");
+});
+var t2 = Task.Run(() =>
+{
+    var solution = optimizer.CalculateSolution(5800);
+    Console.WriteLine($"Solution LOCAL calculated in {sw.ElapsedMilliseconds} ms, iterations made: {temperatures.Count}, total score: {solution.TotalScore()}");
+});
+
+Task.WaitAll(t1, t2);
+
+var solution = optimizer.CalculateSolution(temperatures);
+
 sw.Stop();
-Console.WriteLine($"Solution calculated in {sw.ElapsedMilliseconds} ms, iterations made: {iterations}, total score: {solution.TotalScore()}");
+Console.WriteLine($"Solution calculated in {sw.ElapsedMilliseconds} ms, iterations made: {temperatures.Count}, total score: {solution.TotalScore()}");
 
 Console.WriteLine("Solution:");
 foreach (var person in solution.People.OrderBy(x => x.Key.Backpack.Id))
