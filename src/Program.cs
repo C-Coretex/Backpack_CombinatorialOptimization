@@ -5,13 +5,13 @@ using System.Diagnostics;
 #region Configs
 var backpackPool = new List<Backpack>
 {
-    new Backpack(1, maxWeight: 20, maxVolume: 30),
-    new Backpack(2, maxWeight: 50, maxVolume: 70),
-    new Backpack(3, maxWeight: 80, maxVolume: 90),
+    new Backpack(1, maxWeight: 20, maxVolume: 50),
+    new Backpack(2, maxWeight: 50, maxVolume: 90),
+    new Backpack(3, maxWeight: 80, maxVolume: 120),
 };
 
-var countOfPeople = 1;
-var itemCount = 100;
+var countOfPeople = 10;
+var itemCount = 1000;
 
 var maxIterations = 10_000;
 
@@ -46,7 +46,7 @@ sw.Stop();
 Console.WriteLine($"Solution calculated in {sw.ElapsedMilliseconds} ms, iterations made: {iterations}, total score: {solution.TotalScore()}");
 
 Console.WriteLine("Solution:");
-foreach (var person in solution.People)
+foreach (var person in solution.People.OrderBy(x => x.Key.Backpack.Id))
 {
 	var items = solution.People[person.Key];
 
@@ -54,7 +54,7 @@ foreach (var person in solution.People)
 	var totalVolume = items.Sum(i => i.Volume);
 	var totalValue = items.Sum(i => i.Value);
 
-	Console.WriteLine($"Person with backpack id {person.Key.Backpack.Id}: items count: {items.Count}, total weight: {Math.Round(totalWeight, 2)}, total volume: {Math.Round(totalVolume, 2)}, total value: {totalValue}");
+	Console.WriteLine($"Person with backpack id {person.Key.Backpack.Id}: items count: {items.Count}, total weight: {Math.Round(totalWeight, 2)}/{person.Key.Backpack.MaxWeight}, total volume: {Math.Round(totalVolume, 2)}/{person.Key.Backpack.MaxVolume}, total value: {totalValue}");
 	foreach (var item in items.OrderByDescending(i => i.Value))
 	{
 		Console.WriteLine($"\tWeight: {Math.Round(item.Weight, 2)}; Volume: {Math.Round(item.Volume, 2)}; Value: {item.Value}");

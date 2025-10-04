@@ -11,6 +11,7 @@ namespace Backpack_CombinatorialOptimization.Models.Domain
 
         public Item(int id, double weight, double volume, int value)
         {
+            Id = id;
             Weight = weight;
             Volume = volume;
             Value = value;
@@ -18,10 +19,10 @@ namespace Backpack_CombinatorialOptimization.Models.Domain
 
         public static Item CreateRandom(Random random)
         {
-            var weight = random.NextDouble(0.3, 10);
-            var volume = random.NextDouble(0.3, 10);
+            var weight = random.NextDouble(0.5, 10);
+            var volume = random.NextDouble(1, 15);
 
-            var parameter = (int)(Math.Ceiling(weight + volume / 2));
+            var parameter = (int)(Math.Ceiling((weight + volume) / 2));
             return new(random.Next(), weight, volume, value: random.Next(parameter, 30 + parameter));
         }
     }

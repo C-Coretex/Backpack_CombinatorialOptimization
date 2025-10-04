@@ -2,8 +2,8 @@
 {
     internal record Domain
     {
-        private const int totalValueMultiplier = 100;
-        private const int unevenWeightPenaltyMultiplier = 10;
+        private const int totalValueMultiplier = 10;
+        private const int unevenWeightPenaltyMultiplier = 5;
 
         private readonly IReadOnlyCollection<Backpack> _backpackPool = [];
         public Dictionary<Item, Person?> Items { get; private set; } = [];
@@ -38,6 +38,20 @@
                 snapshot.People[person].Add(item);
 
             return snapshot;
+        }
+
+        public bool CanAssignItem(Item item, out Person? person)
+        {
+            person = null;
+            foreach (var personTemp in People.Keys)
+            {
+                if (CanAssignItem(item, personTemp))
+                {
+                    person = personTemp;
+                    return true; 
+                }
+            }
+            return false;
         }
 
         public bool CanAssignItem(Item item, Person person)
@@ -80,7 +94,7 @@
         {
             var totalValue = People.Values.SelectMany(x => x).Sum(i => i.Value) * totalValueMultiplier;
             var totalWeightPenalty = People.GroupBy(p => p.Key.Backpack.Id)
-                .Select(g => g.Select(kv => (kv.Key.Backpack.MaxWeight - kv.Value.Sum(x => x.Weight))))
+                .Select(g => g.Select(kv => kv.Value.Sum(x => x.Weight)))
                 .Sum(x => CalculateAverageDifference(x.ToList()) * unevenWeightPenaltyMultiplier);
 
             return totalValue - totalWeightPenalty;
@@ -105,12 +119,15 @@
             return totalDifference / totalPairs;
         }
 
-        private Domain GetSnapshot()
+        public Domain GetSnapshot()
         {
             return this with
             {
                 Items = new Dictionary<Item, Person?>(Items),
-                People = new Dictionary<Person, HashSet<Item>>(People)
+                People = People.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => new HashSet<Item>(kvp.Value)
+                )
             };
         }
     }

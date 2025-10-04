@@ -7,7 +7,7 @@ namespace Backpack_CombinatorialOptimization.Optimizer
         private readonly Domain _originalDomain;
         public Optimizer(Domain domain)
         {
-            _originalDomain = domain;
+            _originalDomain = domain.GetSnapshot();
         }
 
         public Domain CalculateSolution(int maxIterations, out int iterationsMade)
@@ -29,9 +29,26 @@ namespace Backpack_CombinatorialOptimization.Optimizer
             return bestDomain;
         }
 
-        private Domain BuildInitial()
+        //First Fit algorithm
+        public Domain BuildInitial()
         {
-            return _originalDomain;
+            var domain = _originalDomain.GetSnapshot();
+
+            while(true)
+            {
+                var unassignedItems = domain.Items.Where(i => i.Value is null).Select(kv => kv.Key).OrderByDescending(i => i.Value)
+                    .Select(i => (canAssign: domain.CanAssignItem(i, out var p), item: i, person: p))
+                    .Where(x => x.canAssign)
+                    .OrderByDescending(x => domain.AssignItem(x.item, x.person).TotalScore()) //TODO: this might be slow...
+                    .FirstOrDefault();
+                
+                if(unassignedItems.person is null)
+                    break;
+
+                domain = domain.AssignItem(unassignedItems.item, unassignedItems.person);
+            }
+
+            return domain;
         }
     }
 }
