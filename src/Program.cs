@@ -10,17 +10,19 @@ var backpackPool = new List<Backpack>
     new Backpack(3, maxWeight: 80, maxVolume: 120),
 };
 
-var countOfPeople = 5;
-var itemCount = 150;
+var countOfPeople = 10;
+var itemCount = 300;
 
 List<double> temperatures = [];
-var value = 1200.0;
-while (value >= 0.01)
+var value = 3000.0;
+while (value >= 0.0001)
 {
-	temperatures.AddRange(Enumerable.Repeat(value, 5));
+	temperatures.AddRange(Enumerable.Repeat(value, 20));
     value *= 0.99;
 }
 
+//the higher the value, the faster the algorithm, but possibly the less optimal the solution
+var parallelismDegree = 4;
 
 #endregion
 
@@ -40,28 +42,28 @@ Console.WriteLine("People (backpack id):");
 Console.WriteLine(string.Join(", ", domain.People.Select(x => x.Key.Backpack.Id).Order()));
 Console.WriteLine();
 Console.WriteLine("Items (top 20 by value):");
-Console.WriteLine(string.Join(Environment.NewLine, domain.Items.OrderByDescending(x => x.Value).Take(20)
-    .Select(x => $"Weight: {Math.Round(x.Key.Weight, 2)}; Volume: {Math.Round(x.Key.Volume, 2)}; Value: {x.Value}")));
+Console.WriteLine(string.Join(Environment.NewLine, domain.Items.OrderByDescending(x => x.Key.Value).Take(20)
+    .Select(x => $"Weight: {Math.Round(x.Key.Weight, 2)}; Volume: {Math.Round(x.Key.Volume, 2)}; Value: {x.Key.Value}")));
 
 var optimizer = new Optimizer(domain);
 var sw = new Stopwatch();
 
 Console.WriteLine("Calculating solution...");
 sw.Start();
-var t1 = Task.Run(() =>
+/*var t1 = Task.Run(() =>
 {
     var solution = optimizer.CalculateSolution(temperatures);
-    Console.WriteLine($"Solution SA calculated in {sw.ElapsedMilliseconds} ms, iterations made: {temperatures.Count}, total score: {solution.TotalScore()}");
+    Console.WriteLine($"Solution SA-4 calculated in {sw.ElapsedMilliseconds} ms, iterations made: {temperatures.Count}, total score: {solution.TotalScore()}");
 });
 var t2 = Task.Run(() =>
 {
-    var solution = optimizer.CalculateSolution(5800);
-    Console.WriteLine($"Solution LOCAL calculated in {sw.ElapsedMilliseconds} ms, iterations made: {temperatures.Count}, total score: {solution.TotalScore()}");
+    var solution = optimizer.CalculateSolution(temperatures, 1);
+    Console.WriteLine($"Solution SA-1 calculated in {sw.ElapsedMilliseconds} ms, iterations made: {temperatures.Count}, total score: {solution.TotalScore()}");
 });
 
-Task.WaitAll(t1, t2);
+Task.WaitAll(t1, t2);*/
 
-var solution = optimizer.CalculateSolution(temperatures);
+var solution = optimizer.CalculateSolution(temperatures, parallelismDegree);
 
 sw.Stop();
 Console.WriteLine($"Solution calculated in {sw.ElapsedMilliseconds} ms, iterations made: {temperatures.Count}, total score: {solution.TotalScore()}");

@@ -2,8 +2,8 @@
 {
     internal record Domain
     {
-        private const int totalValueMultiplier = 10;
-        private const int unevenWeightPenaltyMultiplier = 5;
+        private const int totalValueMultiplier = 5;
+        private const int unevenWeightPenaltyMultiplier = 1;
 
         private readonly IReadOnlyCollection<Backpack> _backpackPool = [];
         public Dictionary<Item, Person?> Items { get; private set; } = [];
@@ -60,10 +60,12 @@
             if(items.Contains(item))
                 return false;
 
+            //TODO: the hottest path, could be cached
             var totalWeight = items.Sum(i => i.Weight) + item.Weight;
             if(totalWeight > person.Backpack.MaxWeight)
                 return false;
 
+            //TODO: the hottest path, could be cached
             var totalVolume = items.Sum(i => i.Volume) + item.Volume;
             if(totalVolume > person.Backpack.MaxVolume)
                 return false;
