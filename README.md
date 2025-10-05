@@ -19,4 +19,5 @@ We are going on a trip in a group. We have children and adults in our group, and
 
 ### Algorithm:
 	First solution: First Fit algorithm
-  Optimizer Algorithm: Simulated Annealing combined with some decreasing with time randomness when choosing the best solution
+  	Optimizer Algorithm: Simulated Annealing combined with some decreasing with time randomness when choosing the best solution
+
