@@ -1,4 +1,6 @@
-﻿namespace Backpack_CombinatorialOptimization.Models.Domain
+﻿using System;
+
+namespace Backpack_CombinatorialOptimization.Models.Domain
 {
     internal record Domain
     {
@@ -40,18 +42,19 @@
             return snapshot;
         }
 
-        public bool CanAssignItem(Item item, out Person? person)
+        public bool CanAssignItem(Item item, out List<Person> people)
         {
-            person = null;
+            people = new List<Person>(People.Keys.Count);
+            var result = false;
             foreach (var personTemp in People.Keys)
             {
                 if (CanAssignItem(item, personTemp))
                 {
-                    person = personTemp;
-                    return true; 
+                    people.Add(personTemp);
+                    result = true;
                 }
             }
-            return false;
+            return result;
         }
 
         public bool CanAssignItem(Item item, Person person)

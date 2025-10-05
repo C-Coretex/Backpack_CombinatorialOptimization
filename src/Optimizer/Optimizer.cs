@@ -53,7 +53,7 @@ namespace Backpack_CombinatorialOptimization.Optimizer
                         }
                     }
 
-                    if (iteration % 500 == 0)
+                    if (iteration % 1_000 == 0)
                         Console.WriteLine($"Iteration {iteration}, best score: {bestDomain.TotalScore()}");
                 });
 
@@ -62,21 +62,27 @@ namespace Backpack_CombinatorialOptimization.Optimizer
 
 
         //First Fit algorithm
-        private Domain BuildSolution(Domain? domain = null, double minRand = 0.7)
+        private Domain BuildSolution(Domain? domain = null, double minRand = 0.6)
         {
             domain = domain?.GetSnapshot() ?? _originalDomain.GetSnapshot();
 
             while (true)
             {
-                var unassignedItems = domain.Items.Where(i => i.Value is null).Select(kv => kv.Key)
-                    .OrderByDescending(i => i.Value * Random.Shared.NextDouble(minRand, 1))
-                    .Select(i => (canAssign: domain.CanAssignItem(i, out var p), item: i, person: p))
-                    .FirstOrDefault(x => x.canAssign);
+                var unassignedItemsQuery = domain.Items.Where(i => i.Value is null).Select(kv => kv.Key)
+                    .Select(i => (canAssign: domain.CanAssignItem(i, out var people), item: i, person: people.Count > 0 ? people[Random.Shared.Next(people.Count)] : null))
+                    .Where(x => x.canAssign);
 
-                if (unassignedItems.person is null)
+                if (minRand > 0.85) //this returns more optimal item, but is slower
+                    unassignedItemsQuery = unassignedItemsQuery.OrderByDescending(x => domain.AssignItem(x.item, x.person).TotalScore() * Random.Shared.NextDouble(minRand, 1));
+                else
+                    unassignedItemsQuery = unassignedItemsQuery.OrderByDescending(i => i.item.Value * Random.Shared.NextDouble(minRand, 1));
+
+                var chosenUnassignedItem = unassignedItemsQuery.FirstOrDefault();
+
+                if (chosenUnassignedItem.person is null)
                     break;
 
-                domain = domain.AssignItem(unassignedItems.item, unassignedItems.person);
+                domain = domain.AssignItem(chosenUnassignedItem.item, chosenUnassignedItem.person);
             }
 
             return domain;

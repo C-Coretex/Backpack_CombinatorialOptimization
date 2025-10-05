@@ -1,17 +1,35 @@
-﻿using Backpack_CombinatorialOptimization.Models.Domain;
+﻿using Backpack_CombinatorialOptimization.Configs;
+using Backpack_CombinatorialOptimization.Models.Domain;
 using Backpack_CombinatorialOptimization.Optimizer;
 using System.Diagnostics;
+using System.Text.Json;
 
 #region Configs
-var backpackPool = new List<Backpack>
+using var stream = File.OpenRead("config.json");
+var config = await JsonSerializer.DeserializeAsync(
+    stream,
+    SourceGenerationContext.Default.BackpackOptimizerConfig
+);
+
+config ??= new BackpackOptimizerConfig
 {
-    new Backpack(1, maxWeight: 20, maxVolume: 50),
-    new Backpack(2, maxWeight: 50, maxVolume: 90),
-    new Backpack(3, maxWeight: 80, maxVolume: 120),
+	BackpackPool = new[]
+	{
+		new BackpackConfig(1, 20, 30),
+		new BackpackConfig(2, 40, 50),
+		new BackpackConfig(3, 60, 70),
+	},
+	PeopleCount = 8,
+	ItemCount = 300,
+	ParallelTasks = 4
 };
 
-var countOfPeople = 10;
-var itemCount = 300;
+var backpackPool = config.BackpackPool
+    .Select(b => new Backpack(b.Id, b.MaxWeight, b.MaxVolume))
+    .ToList();
+
+var countOfPeople = config.PeopleCount;
+var itemCount = config.ItemCount;
 
 List<double> temperatures = [];
 var value = 3000.0;
@@ -22,12 +40,9 @@ while (value >= 0.0001)
 }
 
 //the higher the value, the faster the algorithm, but possibly the less optimal the solution
-var parallelismDegree = 4;
+var parallelismDegree = config.ParallelTasks;
 
 #endregion
-
-Console.WriteLine("Hello, World!");
-
 
 Console.WriteLine("Pool of backpacks:");
 Console.WriteLine(string.Join(Environment.NewLine, backpackPool));
@@ -41,8 +56,8 @@ Console.WriteLine("Domain:");
 Console.WriteLine("People (backpack id):");
 Console.WriteLine(string.Join(", ", domain.People.Select(x => x.Key.Backpack.Id).Order()));
 Console.WriteLine();
-Console.WriteLine("Items (top 20 by value):");
-Console.WriteLine(string.Join(Environment.NewLine, domain.Items.OrderByDescending(x => x.Key.Value).Take(20)
+Console.WriteLine("Items (top 30 by value):");
+Console.WriteLine(string.Join(Environment.NewLine, domain.Items.OrderByDescending(x => x.Key.Value).Take(30)
     .Select(x => $"Weight: {Math.Round(x.Key.Weight, 2)}; Volume: {Math.Round(x.Key.Volume, 2)}; Value: {x.Key.Value}")));
 
 var optimizer = new Optimizer(domain);
@@ -50,18 +65,6 @@ var sw = new Stopwatch();
 
 Console.WriteLine("Calculating solution...");
 sw.Start();
-/*var t1 = Task.Run(() =>
-{
-    var solution = optimizer.CalculateSolution(temperatures);
-    Console.WriteLine($"Solution SA-4 calculated in {sw.ElapsedMilliseconds} ms, iterations made: {temperatures.Count}, total score: {solution.TotalScore()}");
-});
-var t2 = Task.Run(() =>
-{
-    var solution = optimizer.CalculateSolution(temperatures, 1);
-    Console.WriteLine($"Solution SA-1 calculated in {sw.ElapsedMilliseconds} ms, iterations made: {temperatures.Count}, total score: {solution.TotalScore()}");
-});
-
-Task.WaitAll(t1, t2);*/
 
 var solution = optimizer.CalculateSolution(temperatures, parallelismDegree);
 
@@ -85,23 +88,3 @@ foreach (var person in solution.People.OrderBy(x => x.Key.Backpack.Id))
 }
 
 Console.ReadKey();
-/*
-Domain:
-	All available items (weight, size, value)
-	Limitation:
-		A backpack has max weight and max size. We have several people with the backpacks (there are several backpack types, e.g. for children, adults).
-		We want to take as much value as we can. 
-		Hard Constraint: we cannot exceed max weight and max size of a backpack.
-		Soft Constraint: If max optimal weight is the same, ideally we would prefer to have similar weight on two backpacks.
-		
-
-Scoring:
-	Sum of all scores in all backpacks. Calculate difference between weights of the same type of backpacks and multiply by some parameter.
-
-Move:
-	Remove one item from a backpack, try to add new ones
-
-Algorithm:
-	...
-
- */
