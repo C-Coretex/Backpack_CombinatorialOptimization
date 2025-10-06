@@ -4,7 +4,7 @@
 Navigate to [./.release/](./.release/) folder and run _Backpack_CombinatorialOptimization.exe_
 
 If you want to tweak the config, you can modify _config.json_
-
+There are 6 predefined test cases. If you want to run specific test case, rename corresponding _config{N}.json_ to _config.json_
 
 - _BackpackPool_ - a pool of backpack types that will be randomly assigned to people
 - _PeopleCount_ - count of people who will carry backpacks
@@ -33,5 +33,6 @@ We are going on a trip in a group. We have children and adults in our group, and
 ### Algorithm:
 	First solution: First Fit algorithm
   	Optimizer Algorithm: Simulated Annealing combined with some decreasing with time randomness when choosing the best solution
+
 
 
