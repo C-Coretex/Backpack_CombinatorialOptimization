@@ -25,7 +25,10 @@ namespace Backpack_CombinatorialOptimization.Optimizer
                 {
                     Interlocked.Increment(ref iteration);
 
-                    var domain = Advance(currentDomain, (int)Math.Ceiling(currentDomain.Items.Where(x => x.Value is null).Count() / 20.0), Math.Max(0.5, (double)iteration / temperatures.Count));
+                    var itemsToRemove = Math.Max(3, (int)Math.Ceiling(currentDomain.Items.Where(x => x.Value is null).Count() / 20.0));
+                    if(itemsToRemove > 10) //the more items, the slower the iteration
+                        itemsToRemove = 10;
+                    var domain = Advance(currentDomain, itemsToRemove, Math.Max(0.5, (double)iteration / temperatures.Count));
                     var domainTotalScore = domain.TotalScore();
                     if (domainTotalScore > bestDomain.TotalScore())
                     {
