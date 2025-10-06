@@ -6,7 +6,7 @@
       "MaxVolume": 50
     }
   ],
-  "PeopleCount": 1,
-  "ItemCount": 20,
+  "PeopleCount": 2,
+  "ItemCount": 30,
   "ParallelTasks": 4
 }

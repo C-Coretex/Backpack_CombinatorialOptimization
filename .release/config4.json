@@ -1,0 +1,22 @@
+﻿{
+  "BackpackPool": [
+    {
+      "Id": 1,
+      "MaxWeight": 20,
+      "MaxVolume": 50
+    },
+    {
+      "Id": 2,
+      "MaxWeight": 50,
+      "MaxVolume": 90
+    },
+    {
+      "Id": 3,
+      "MaxWeight": 80,
+      "MaxVolume": 120
+    }
+  ],
+  "PeopleCount": 6,
+  "ItemCount": 200,
+  "ParallelTasks": 4
+}
